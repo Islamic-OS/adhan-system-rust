@@ -1,20 +1,4 @@
-use salah::prelude::*;
-use rocket::serde::{ Serialize, json::{json, Value} };
-use toml;
-use std::{fs, process::exit};
-use serde_derive::Deserialize;
-
-
-#[derive(Deserialize)]
-struct ConfigIsm {
-    config: SubConfig
-}
-
-#[derive(Deserialize)]
-struct SubConfig {
-    ip: String,
-    port: u16
-}
+mod routes;
 
 // fn main() {
 //     let lat = 23.7231;
@@ -44,41 +28,17 @@ struct SubConfig {
 //     }
 // }
 
-#[macro_use] extern crate rocket;
+#[macro_use]
+extern crate rocket;
 
-#[get("/")]
-fn index() -> Value {
-    let filecontent = match fs::read_to_string("./testing/ismconf.toml") {
-        Ok(c) => c,
-        Err(_) => {
-            eprintln!("Could not find or read file!");
-
-            exit(1);
-        }
-    };
-
-    let config: ConfigIsm = match toml::from_str(&filecontent) {
-        // If successful, return data as `Data` struct.
-        // `d` is a local variable.
-        Ok(d) => d,
-        // Handle the `error` case.
-        Err(_) => {
-            // Write `msg` to `stderr`.
-            eprintln!("Unable to load data from config file!");
-            // E
-            exit(1);
-        }
-    };
-    
-    json!({
-        "status": 200,
-        "message": "Adhan System Online...".to_string() + &config.config.ip
-    })
-}
+// Intialize the Rocket framework
 
 #[launch]
 fn rocket() -> _ {
-    rocket::build().mount("/", routes![index])
+    let figment = rocket::Config::figment().merge(("port", 10295));
+
+    rocket::custom(figment)
+        .mount("/", routes![routes::index])
+        .mount("/", routes![routes::today_wakt_times])
+        .register("/", catchers![routes::not_found])
 }
-
-

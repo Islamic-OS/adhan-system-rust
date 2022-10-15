@@ -10,6 +10,7 @@ salah = "0.7.0"
 toml = "0.5.9"
 serde = "1.0.145"
 serde_derive = "1.0.145"
+chrono = "0.4.22"
 
 [dependencies.rocket]
 version = "0.5.0-rc.2"
