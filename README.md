@@ -5,7 +5,13 @@ Our existing Adhan System, but Rust implementation.
 
 ## How to run
 
-1. Make sure you have Rust (Cargo) and Git installed.
-2. `git clone 
+Make sure you have Rust (Cargo) and Git installed.
 
+Then from your code directory:
+```
+> git clone https://github.com/Islamic-OS/adhan-system-rust.git
+> cd adhan-system-rust
+> cargo run
+```
 
+Dassit!
