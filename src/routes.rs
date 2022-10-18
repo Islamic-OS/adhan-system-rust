@@ -8,6 +8,8 @@ use serde_derive::Deserialize;
 use std::{fs, process::exit};
 use toml;
 
+use crate::patched_methods::QiblahPatched;
+
 // Data structure for the configuration file
 
 #[derive(Deserialize)]
@@ -201,22 +203,36 @@ pub fn current_prayer() -> Value {
 
 // Qiblah Part needs to be fixed!
 
-// #[get("/qibla")]
-// pub fn qibla_direction() -> Value {
-//     let config = get_config();
-//     
-//     let lat = config.general.latitude;
-//     let lon = config.general.longitude;
+#[get("/qibla")]
+pub fn qibla_direction() -> Value {
+    let config = get_config();
+    
+    let lat = config.general.latitude;
+    let lon = config.general.longitude;
 
-//     let city = Coordinates::new(lat, lon);
-//     
-//     
-//     let qiblah = Qiblah::new(city);
-//     
-//     json!({
-//         "status": 200,
-//         "message": "Direction of the Holy Ka'baa, in degrees from North, from your coordinates",
-//         "degrees": qiblah
-//     })
-// }
+    let city = Coordinates::new(lat, lon);
+    
+    let qiblah = QiblahPatched::new(city);
+
+    // match qiblah {
+    //     Ok(matched) => {
+    //         json!({
+    //             "status": 200,
+    //             "message": "Direction of the Holy Ka'baa, in degrees from North, from your coordinates",
+    //             "degrees": matched.0
+    //         })
+    //     }
+    //     Err(_) => {
+    //         eprint!("Error fetching PrayerTimes!");
+
+    //         exit(1);
+    //     }
+    // }
+
+    json!({
+        "status": 200,
+        "message": "Direction of the Holy Ka'baa, in degrees from North, from your coordinates",
+        "degrees": qiblah.0
+    })
+}
 

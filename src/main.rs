@@ -1,4 +1,6 @@
 mod routes;
+mod patched_methods;
+mod unit_salah;
 
 // fn main() {
 //     let lat = 23.7231;
@@ -41,6 +43,6 @@ fn rocket() -> _ {
         .mount("/", routes![routes::index])
         .mount("/", routes![routes::today_wakt_times])
         .mount("/", routes![routes::current_prayer])
-        // .mount("/", routes![routes::qibla_direction])
+        .mount("/", routes![routes::qibla_direction])
         .register("/", catchers![routes::not_found])
 }
