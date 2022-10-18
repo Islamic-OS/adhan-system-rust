@@ -113,7 +113,8 @@ pub fn today_wakt_times() -> Value {
     let lat = config.general.latitude;
     let lon = config.general.longitude;
 
-    let dhaka_city = Coordinates::new(lat, lon);
+    // let city = Coordinates::new(lat, lon);
+    let city = Coordinates { latitude: lat, longitude: lon };
     let date = Utc::today();
     let params = Configuration::with(
         get_method(&config.islamic.method),
@@ -121,7 +122,7 @@ pub fn today_wakt_times() -> Value {
     );
     let prayers = PrayerSchedule::new()
         .on(date)
-        .for_location(dhaka_city)
+        .for_location(city)
         .with_configuration(params)
         .calculate();
 
@@ -147,3 +148,75 @@ pub fn today_wakt_times() -> Value {
         }
     }
 }
+
+#[get("/current")]
+pub fn current_prayer() -> Value {
+    let config = get_config();
+
+    let lat = config.general.latitude;
+    let lon = config.general.longitude;
+
+    let city = Coordinates::new(lat, lon);
+    let date = Utc::today();
+    let params = Configuration::with(
+        get_method(&config.islamic.method),
+        get_madhab(&config.islamic.madhab),
+    );
+    let prayers = PrayerSchedule::new()
+        .on(date)
+        .for_location(city)
+        .with_configuration(params)
+        .calculate();
+    
+    match prayers {
+        Ok(times) => {
+            let (hours, mins) = times.time_remaining();
+
+            json!({
+                "status": 200,
+                "message": "Today's Salah Times",
+                "data": {
+                    "current": {
+                        "name": times.current().name(),
+                        "timeRemaining": hours.to_string() + ":" + &mins.to_string()
+                    },
+                    "next": times.next().name()
+                }
+            })
+        }
+        Err(_) => {
+            eprint!("Error fetching PrayerTimes!");
+
+            exit(1);
+        }
+    }
+}
+
+
+
+
+
+
+
+
+// Qiblah Part needs to be fixed!
+
+// #[get("/qibla")]
+// pub fn qibla_direction() -> Value {
+//     let config = get_config();
+//     
+//     let lat = config.general.latitude;
+//     let lon = config.general.longitude;
+
+//     let city = Coordinates::new(lat, lon);
+//     
+//     
+//     let qiblah = Qiblah::new(city);
+//     
+//     json!({
+//         "status": 200,
+//         "message": "Direction of the Holy Ka'baa, in degrees from North, from your coordinates",
+//         "degrees": qiblah
+//     })
+// }
+

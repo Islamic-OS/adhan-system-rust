@@ -40,5 +40,7 @@ fn rocket() -> _ {
     rocket::custom(figment)
         .mount("/", routes![routes::index])
         .mount("/", routes![routes::today_wakt_times])
+        .mount("/", routes![routes::current_prayer])
+        // .mount("/", routes![routes::qibla_direction])
         .register("/", catchers![routes::not_found])
 }
