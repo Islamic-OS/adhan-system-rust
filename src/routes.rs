@@ -1,115 +1,60 @@
+use std::process::exit;
 use chrono;
-use rocket::{
-    serde::json::{json, Value},
-    Request,
-};
+use serde_json::json;
+// use rocket::{
+//     serde::json::{json, Value},
+//     Request,
+// };
 use salah::prelude::*;
-use serde_derive::Deserialize;
-use std::{fs, process::exit};
-use toml;
+use warp::Filter;
 
+use crate::methods::*;
 use crate::patched_methods::QiblahPatched;
 
-// Data structure for the configuration file
 
-#[derive(Deserialize)]
-pub struct ConfigIsm {
-    general: GeneralConfig,
-    islamic: IslamicConfig,
-}
-
-#[derive(Deserialize)]
-struct GeneralConfig {
-    latitude: f64,
-    longitude: f64,
-}
-
-#[derive(Deserialize)]
-struct IslamicConfig {
-    method: String,
-    madhab: String,
-}
-
-// Dependency methods
-
-fn get_method(method: &str) -> Method {
-    match method {
-        "MWL" => Method::MuslimWorldLeague,
-        "Egyptian" => Method::Egyptian,
-        "Karachi" => Method::Karachi,
-        "UmmAlQura" => Method::UmmAlQura,
-        "Dubai" => Method::Dubai,
-        "Qatar" => Method::Qatar,
-        "Kuwait" => Method::Kuwait,
-        "MoonsightingCommittee" => Method::MoonsightingCommittee,
-        "Singapore" => Method::Singapore,
-        "Turkey" => Method::Turkey,
-        "Tehran" => Method::Tehran,
-        "ISNA" => Method::NorthAmerica,
-        "Other" => Method::Other,
-        &_ => Method::Other,
-    }
-}
-
-fn get_madhab(madhab: &str) -> Madhab {
-    match madhab {
-        "Hanafi" => Madhab::Hanafi,
-        "Shafi" => Madhab::Shafi,
-        &_ => Madhab::Hanafi,
-    }
-}
-
-fn get_config() -> ConfigIsm {
-    let filecontent = match fs::read_to_string("./testing/ismconf.toml") {
-        Ok(c) => c,
-        Err(_) => {
-            eprintln!("Could not find or read file!");
-
-            exit(1);
-        }
-    };
-
-    let config: ConfigIsm = match toml::from_str(&filecontent) {
-        Ok(d) => d,
-        Err(_) => {
-            eprintln!("Unable to load data from config file!");
-
-            exit(1);
-        }
-    };
-
-    config
-}
 
 // Routes
 
-#[catch(404)]
-pub fn not_found(req: &Request) -> Value {
-    json!({
-        "status": 404,
-        "reason": "Endpoint Not found! Path: ".to_string() + &req.uri().path().to_string()
-    })
-}
+// 404 route is redundant
+// #[catch(404)]
+// pub fn not_found() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
+//     warp::path("*")
+//         .map(|| {
+//             let res = json!({
+//                 "status": 404,
+//                 "reason": "Endpoint Not found!"
+//             });
 
-#[get("/")]
-pub fn index() -> Value {
+//             warp::reply::json(&res)
+//         })
+// }
+
+// #[get("/")]
+pub fn index(
+) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     let config = get_config();
 
-    json!({
-        "status": 200,
-        "message": "Adhan System Online...",
-        "data": {
-          "latitude": config.general.latitude,
-          "longitude": config.general.longitude,
-          "timezone": chrono::Local::now().offset().to_string(),
-          "method": config.islamic.method,
-          "madhab": config.islamic.madhab
-        }
-    })
+    warp::path::end().and(warp::get())
+        .map(move || {
+            let res = json!({
+                "status": 200,
+                "message": "Adhan System Online...",
+                "data": {
+                    "latitude": config.general.latitude.clone(),
+                    "longitude": config.general.longitude.clone(),
+                    "timezone": chrono::Local::now().offset().to_string(),
+                    "method": config.islamic.method.clone(),
+                    "madhab": config.islamic.madhab.clone()
+                }
+            });
+
+            warp::reply::json(&res)
+        })
 }
 
-#[get("/today")]
-pub fn today_wakt_times() -> Value {
+// #[get("/today")]
+pub fn today_wakt_times(
+) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     let config = get_config();
 
     let lat = config.general.latitude;
@@ -130,19 +75,26 @@ pub fn today_wakt_times() -> Value {
 
     match prayers {
         Ok(prayer) => {
-            json!({
-                "status": 200,
-                "message": "Today's Salah Times",
-                "data": {
-                    "fajr": prayer.time(Prayer::Fajr).with_timezone(&Local).format("%-l:%M %p").to_string(),
-                    "sunrise": prayer.time(Prayer::Sunrise).with_timezone(&Local).format("%-l:%M %p").to_string(),
-                    "dhuhr": prayer.time(Prayer::Dhuhr).with_timezone(&Local).format("%-l:%M %p").to_string(),
-                    "asr": prayer.time(Prayer::Asr).with_timezone(&Local).format("%-l:%M %p").to_string(),
-                    "maghrib": prayer.time(Prayer::Maghrib).with_timezone(&Local).format("%-l:%M %p").to_string(),
-                    "isha": prayer.time(Prayer::Isha).with_timezone(&Local).format("%-l:%M %p").to_string(),
-                    "qiyam": prayer.time(Prayer::Qiyam).with_timezone(&Local).format("%-l:%M %p").to_string()
-                }
-            })
+            warp::path("today")
+                .and(warp::get())
+                .and(warp::path::end())
+                .map(move || {
+                    let res = json!({
+                        "status": 200,
+                        "message": "Today's Salah Times",
+                        "data": {
+                            "fajr": prayer.time(Prayer::Fajr).with_timezone(&Local).format("%-l:%M %p").to_string(),
+                            "sunrise": prayer.time(Prayer::Sunrise).with_timezone(&Local).format("%-l:%M %p").to_string(),
+                            "dhuhr": prayer.time(Prayer::Dhuhr).with_timezone(&Local).format("%-l:%M %p").to_string(),
+                            "asr": prayer.time(Prayer::Asr).with_timezone(&Local).format("%-l:%M %p").to_string(),
+                            "maghrib": prayer.time(Prayer::Maghrib).with_timezone(&Local).format("%-l:%M %p").to_string(),
+                            "isha": prayer.time(Prayer::Isha).with_timezone(&Local).format("%-l:%M %p").to_string(),
+                            "qiyam": prayer.time(Prayer::Qiyam).with_timezone(&Local).format("%-l:%M %p").to_string()
+                        }
+                    });
+
+                    warp::reply::json(&res)
+                })
         }
         Err(error) => {
             eprintln!("Could not calculate prayer times: {}", error);
@@ -151,8 +103,9 @@ pub fn today_wakt_times() -> Value {
     }
 }
 
-#[get("/current")]
-pub fn current_prayer() -> Value {
+// #[get("/current")]
+pub fn current_prayer(
+) -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     let config = get_config();
 
     let lat = config.general.latitude;
@@ -173,18 +126,25 @@ pub fn current_prayer() -> Value {
     match prayers {
         Ok(times) => {
             let (hours, mins) = times.time_remaining();
+            
+            warp::path("current")
+                .and(warp::get())
+                .and(warp::path::end())
+                .map(move || {
+                    let res = json!({
+                        "status": 200,
+                        "message": "Today's Salah Times",
+                        "data": {
+                            "current": {
+                                "name": times.current().name(),
+                                "timeRemaining": hours.to_string() + ":" + &mins.to_string()
+                            },
+                            "next": times.next().name()
+                        }
+                    });
 
-            json!({
-                "status": 200,
-                "message": "Today's Salah Times",
-                "data": {
-                    "current": {
-                        "name": times.current().name(),
-                        "timeRemaining": hours.to_string() + ":" + &mins.to_string()
-                    },
-                    "next": times.next().name()
-                }
-            })
+                    warp::reply::json(&res)
+                })
         }
         Err(_) => {
             eprint!("Error fetching PrayerTimes!");
@@ -194,17 +154,8 @@ pub fn current_prayer() -> Value {
     }
 }
 
-
-
-
-
-
-
-
-// Qiblah Part needs to be fixed!
-
-#[get("/qibla")]
-pub fn qibla_direction() -> Value {
+// #[get("/qibla")]
+pub fn qibla_direction() -> impl Filter<Extract = impl warp::Reply, Error = warp::Rejection> + Clone {
     let config = get_config();
     
     let lat = config.general.latitude;
@@ -213,26 +164,18 @@ pub fn qibla_direction() -> Value {
     let city = Coordinates::new(lat, lon);
     
     let qiblah = QiblahPatched::new(city);
+    
+    warp::path("qibla")
+        .and(warp::get())
+        .and(warp::path::end())
+        .map(move || {
+            let res = json!({
+                "status": 200,
+                "message": "Direction of the Holy Ka'baa, in degrees from North, from your coordinates",
+                "degrees": qiblah.0.clone()
+            });
 
-    // match qiblah {
-    //     Ok(matched) => {
-    //         json!({
-    //             "status": 200,
-    //             "message": "Direction of the Holy Ka'baa, in degrees from North, from your coordinates",
-    //             "degrees": matched.0
-    //         })
-    //     }
-    //     Err(_) => {
-    //         eprint!("Error fetching PrayerTimes!");
-
-    //         exit(1);
-    //     }
-    // }
-
-    json!({
-        "status": 200,
-        "message": "Direction of the Holy Ka'baa, in degrees from North, from your coordinates",
-        "degrees": qiblah.0
-    })
+            warp::reply::json(&res)
+        })
 }
 
