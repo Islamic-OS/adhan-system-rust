@@ -1,7 +1,7 @@
+use salah::prelude::*;
 use serde_derive::Deserialize;
 use std::{fs, process::exit};
 use toml;
-use salah::prelude::*;
 
 // Data structure for the configuration file
 
@@ -73,4 +73,3 @@ pub fn get_config() -> ConfigIsm {
 
     config
 }
-
