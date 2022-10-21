@@ -17,6 +17,11 @@ async fn daemon_proc() {
     let mut alert = false;
     let mut name: String = String::from("");
 
+    ctrlc::set_handler(move || {
+        std::process::exit(1);
+    })
+    .expect("Error setting Ctrl-C handler");
+
     loop {
         if alert {
             if cfg!(target_os = "windows") {
