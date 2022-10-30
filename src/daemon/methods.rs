@@ -7,18 +7,8 @@ use toml;
 
 #[derive(Deserialize)]
 pub struct ConfigIsm {
-    pub general: GeneralConfig,
-    pub islamic: IslamicConfig,
-}
-
-#[derive(Deserialize)]
-pub struct GeneralConfig {
     pub latitude: f64,
     pub longitude: f64,
-}
-
-#[derive(Deserialize)]
-pub struct IslamicConfig {
     pub method: String,
     pub madhab: String,
 }
@@ -53,7 +43,7 @@ pub fn get_madhab(madhab: &str) -> Madhab {
 }
 
 pub fn get_config() -> ConfigIsm {
-    let filecontent = match fs::read_to_string("./testing/ismconf.toml") {
+    let filecontent = match fs::read_to_string("./testing/adhanconf.toml") {
         Ok(c) => c,
         Err(_) => {
             eprintln!("Could not find or read file!");

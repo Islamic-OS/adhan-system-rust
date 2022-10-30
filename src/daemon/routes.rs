@@ -7,7 +7,7 @@ use std::process::exit;
 // };
 use salah::prelude::*;
 // use warp::Filter;
-use actix_web::{get, post, web, Responder, Result};
+use actix_web::{get, web, Responder, Result};
 
 use crate::methods::*;
 use crate::models::{
@@ -26,11 +26,11 @@ pub async fn index() -> Result<impl Responder, actix_web::Error> {
     //     "status": 200,
     //     "message": "Adhan System Online...",
     //     "data": {
-    //         "latitude": config.general.latitude.clone(),
-    //         "longitude": config.general.longitude.clone(),
+    //         "latitude": config.latitude.clone(),
+    //         "longitude": config.longitude.clone(),
     //         "timezone": chrono::Local::now().offset().to_string(),
-    //         "method": config.islamic.method.clone(),
-    //         "madhab": config.islamic.madhab.clone()
+    //         "method": config.method.clone(),
+    //         "madhab": config.madhab.clone()
     //     }
     // });
 
@@ -38,11 +38,11 @@ pub async fn index() -> Result<impl Responder, actix_web::Error> {
         status: 200,
         message: "Adhan System Online...".to_string(),
         data: IndexData {
-            latitude: config.general.latitude.clone(),
-            longitude: config.general.longitude.clone(),
+            latitude: config.latitude.clone(),
+            longitude: config.longitude.clone(),
             timezone: chrono::Local::now().offset().to_string(),
-            method: config.islamic.method.clone(),
-            madhab: config.islamic.madhab.clone(),
+            method: config.method.clone(),
+            madhab: config.madhab.clone(),
         },
     };
 
@@ -53,11 +53,11 @@ pub async fn index() -> Result<impl Responder, actix_web::Error> {
     //         "status": 200,
     //         "message": "Adhan System Online...",
     //         "data": {
-    //             "latitude": config.general.latitude.clone(),
-    //             "longitude": config.general.longitude.clone(),
+    //             "latitude": config.latitude.clone(),
+    //             "longitude": config.longitude.clone(),
     //             "timezone": chrono::Local::now().offset().to_string(),
-    //             "method": config.islamic.method.clone(),
-    //             "madhab": config.islamic.madhab.clone()
+    //             "method": config.method.clone(),
+    //             "madhab": config.madhab.clone()
     //         }
     //     });
 
@@ -69,8 +69,8 @@ pub async fn index() -> Result<impl Responder, actix_web::Error> {
 pub async fn today_wakt_times() -> Result<impl Responder, actix_web::Error> {
     let config = get_config();
 
-    let lat = config.general.latitude;
-    let lon = config.general.longitude;
+    let lat = config.latitude;
+    let lon = config.longitude;
 
     // let city = Coordinates::new(lat, lon);
     let city = Coordinates {
@@ -79,8 +79,8 @@ pub async fn today_wakt_times() -> Result<impl Responder, actix_web::Error> {
     };
     let date = Utc::today();
     let params = Configuration::with(
-        get_method(&config.islamic.method),
-        get_madhab(&config.islamic.madhab),
+        get_method(&config.method),
+        get_madhab(&config.madhab),
     );
     let prayers = PrayerSchedule::new()
         .on(date)
@@ -96,37 +96,37 @@ pub async fn today_wakt_times() -> Result<impl Responder, actix_web::Error> {
                 data: TodayData {
                     fajr: prayer
                         .time(Prayer::Fajr)
-                        .with_timezone(&Local)
+                        .with_timezone(&chrono::Local)
                         .format("%-l:%M %p")
                         .to_string(),
                     sunrise: prayer
                         .time(Prayer::Sunrise)
-                        .with_timezone(&Local)
+                        .with_timezone(&chrono::Local)
                         .format("%-l:%M %p")
                         .to_string(),
                     dhuhr: prayer
                         .time(Prayer::Dhuhr)
-                        .with_timezone(&Local)
+                        .with_timezone(&chrono::Local)
                         .format("%-l:%M %p")
                         .to_string(),
                     asr: prayer
                         .time(Prayer::Asr)
-                        .with_timezone(&Local)
+                        .with_timezone(&chrono::Local)
                         .format("%-l:%M %p")
                         .to_string(),
                     maghrib: prayer
                         .time(Prayer::Maghrib)
-                        .with_timezone(&Local)
+                        .with_timezone(&chrono::Local)
                         .format("%-l:%M %p")
                         .to_string(),
                     isha: prayer
                         .time(Prayer::Isha)
-                        .with_timezone(&Local)
+                        .with_timezone(&chrono::Local)
                         .format("%-l:%M %p")
                         .to_string(),
                     qiyam: prayer
                         .time(Prayer::Qiyam)
-                        .with_timezone(&Local)
+                        .with_timezone(&chrono::Local)
                         .format("%-l:%M %p")
                         .to_string(),
                 },
@@ -142,13 +142,13 @@ pub async fn today_wakt_times() -> Result<impl Responder, actix_web::Error> {
             //             "status": 200,
             //             "message": "Today's Salah Times",
             //             "data": {
-            //                 "fajr": prayer.time(Prayer::Fajr).with_timezone(&Local).format("%-l:%M %p").to_string(),
-            //                 "sunrise": prayer.time(Prayer::Sunrise).with_timezone(&Local).format("%-l:%M %p").to_string(),
-            //                 "dhuhr": prayer.time(Prayer::Dhuhr).with_timezone(&Local).format("%-l:%M %p").to_string(),
-            //                 "asr": prayer.time(Prayer::Asr).with_timezone(&Local).format("%-l:%M %p").to_string(),
-            //                 "maghrib": prayer.time(Prayer::Maghrib).with_timezone(&Local).format("%-l:%M %p").to_string(),
-            //                 "isha": prayer.time(Prayer::Isha).with_timezone(&Local).format("%-l:%M %p").to_string(),
-            //                 "qiyam": prayer.time(Prayer::Qiyam).with_timezone(&Local).format("%-l:%M %p").to_string()
+            //                 "fajr": prayer.time(Prayer::Fajr).with_timezone(&chrono::Local).format("%-l:%M %p").to_string(),
+            //                 "sunrise": prayer.time(Prayer::Sunrise).with_timezone(&chrono::Local).format("%-l:%M %p").to_string(),
+            //                 "dhuhr": prayer.time(Prayer::Dhuhr).with_timezone(&chrono::Local).format("%-l:%M %p").to_string(),
+            //                 "asr": prayer.time(Prayer::Asr).with_timezone(&chrono::Local).format("%-l:%M %p").to_string(),
+            //                 "maghrib": prayer.time(Prayer::Maghrib).with_timezone(&chrono::Local).format("%-l:%M %p").to_string(),
+            //                 "isha": prayer.time(Prayer::Isha).with_timezone(&chrono::Local).format("%-l:%M %p").to_string(),
+            //                 "qiyam": prayer.time(Prayer::Qiyam).with_timezone(&chrono::Local).format("%-l:%M %p").to_string()
             //             }
             //         });
 
@@ -167,14 +167,14 @@ pub async fn today_wakt_times() -> Result<impl Responder, actix_web::Error> {
 pub async fn current_prayer() -> Result<impl Responder, actix_web::Error> {
     let config = get_config();
 
-    let lat = config.general.latitude;
-    let lon = config.general.longitude;
+    let lat = config.latitude;
+    let lon = config.longitude;
 
     let city = Coordinates::new(lat, lon);
     let date = Utc::today();
     let params = Configuration::with(
-        get_method(&config.islamic.method),
-        get_madhab(&config.islamic.madhab),
+        get_method(&config.method),
+        get_madhab(&config.madhab),
     );
     let prayers = PrayerSchedule::new()
         .on(date)
@@ -231,8 +231,8 @@ pub async fn current_prayer() -> Result<impl Responder, actix_web::Error> {
 pub async fn qiblah_direction() -> Result<impl Responder, actix_web::Error> {
     let config = get_config();
 
-    let lat = config.general.latitude;
-    let lon = config.general.longitude;
+    let lat = config.latitude;
+    let lon = config.longitude;
 
     let city = Coordinates::new(lat, lon);
 

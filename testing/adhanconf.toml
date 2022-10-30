@@ -1,8 +1,4 @@
-[general]
 latitude = 23.7231
 longitude = 90.4086
-
-[islamic]
 method = "Karachi"
 madhab = "Hanafi"
-

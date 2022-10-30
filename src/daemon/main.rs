@@ -42,11 +42,11 @@ async fn daemon_proc() {
 
         let config = get_config();
 
-        let city = Coordinates::new(config.general.latitude, config.general.longitude);
+        let city = Coordinates::new(config.latitude, config.longitude);
         let date = Utc::today();
         let params = Configuration::with(
-            get_method(&config.islamic.method),
-            get_madhab(&config.islamic.madhab),
+            get_method(&config.method),
+            get_madhab(&config.madhab),
         );
         let prayers = PrayerSchedule::new()
             .on(date)
@@ -77,7 +77,7 @@ async fn main() -> std::io::Result<()> {
     // Create a new thread to run the notification system
     tokio::spawn(async move { daemon_proc().await });
 
-    println!("Started server...");
+    println!("Started server on port {}...", PORT);
 
     HttpServer::new(|| {
         App::new()
